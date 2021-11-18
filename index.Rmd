@@ -172,7 +172,7 @@ This graph shows the distribution of ratings for movies that passed and failed t
 
 #### Concluding Remarks
 
-If any!
+Overall it was interesting to see how different variables of movies are related to each other. I definitely went into this project with some preconceived notions but not all of them were confirmed. I appreiate what the movie industry is doing for female representation and I hope other fields continue to follow.
 
 
 
