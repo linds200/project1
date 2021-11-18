@@ -19,68 +19,156 @@ tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
 
 ## Data Wrangling, Exploration, Visualization
 
-### Name and EID here
+### Lindsey King lkk497
 
-#### Introduction 
+#### Introduction 4
 
-Paragraph or two introducing your datasets and variables, why they are interesting to you, etc.
+Both data sets that I have chosen were apart of packages that were already installed on the server. The first data set I chose is `movies` from the package `ggplot2movies`. This data set contains information and user ratings of 58,788 movies from the website IMDB.com. For each movie there is the following information: the title, year of release, total budget (US dollars), length (minutes), average IMDB user rating, number of IMDB users who rated the movie, percentile of users who rating the movie a 1,2,3 etc. (when multiplied by 10), MPAA rating and binary genre. The second data set I chose is `bechdel` from the package `fivethirtyeight`. This data set contains information about 1,794 movies and whether or not they passed what is called the bechdel test. The bechdel test is a test of the representation of women in fiction. The requirements are that there are two women are featured in the film and talk to each other about something other than men. This data set contains the following information: the title, year of release, text to construct IMDB URL, detailed bechdel test results with discrepancies, detailed bechdel test results, binary bechdel test result, film budget, domestic gross (US), international gross, bechdel code (Year&Pass or Fail), budget in 2013 (adjusted for inflation), domestic gross in 2013 (adjusted for inflation), international gross in 2013 (adjusted for inflation), period code, and decade code.
+I chose these data sets to see the correlation between the bechdel test and the rating of certain movies. There are also many other factors that can be compared like the budget of the movie and the rating or the budget and whether or not the movie passed the bechdel test. There has been growing representation of women in the film industry. However, there has not always been female representation so older movies may not be as likely to pass the bechdel test where newer movies will be more likely to pass. The `bechdel` data set only includes movies from 1970-2013, but it will still be interesting to see the change in representation just over that 43 year time period. Personally, being in the STEM field I know that we, as women, are growing as the minority. However, this topic is particularly interesting to me as a women because I believe that we should have fair representation in all fields.
 
-```{R}
-# read your datasets in here, e.g., with read_csv()
-
+```{R eval=F}
+library(tidyverse)
+library(dplyr)
+library(gt)
+library(kableExtra)
+library(fivethirtyeight)
+library(ggplot2movies)
+data("movies")
+data("bechdel")
+head(bechdel)
+head(movies)
 ```
 
 #### Tidying: Reshaping
 
-If your datasets are tidy already, demonstrate that you can reshape data with pivot wider/longer here (e.g., untidy and then retidy). Alternatively, it may be easier to wait until the wrangling section so you can reshape your summary statistics. Note here if you are going to do this.
+For this section I just took different variables from each  data sets and pivoted longer to untidy and then pivoted wider to tidy it again. I untidied the `movies` data set by using `pivot_longer` to gather the r1-10 variables into once variable called "rating_sep" with the values going to the variable "percentile". I then used the `pivot_wider` function to undo it and make the data set tidy again. I untidied the `bechdel` data set by uding `pivot_longer` to gather the budget variables into one variable called `budget_type` with the values going to the variable `budget_val`. I did the same for the domestic gross variables and the international gross variables. I then used `pivot_wider` to undo this and make the data set tidy again.
 
 ```{R}
-# your tidying code (if applicable; can also wait until wrangling section)
+movies_untidy <- movies %>% pivot_longer(7:16, names_to = "rating_sep", values_to = "percentile")
+head(movies_untidy)
+
+movies_tidy <- movies_untidy %>% pivot_wider(names_from = "rating_sep", values_from = "percentile" )
+head(movies_tidy)
+
+bechdel_untidy <- bechdel %>% pivot_longer(c("budget", "budget_2013"), names_to = "budget_type", values_to = "budget_val") %>% pivot_longer(c("domgross", "domgross_2013"), names_to = "domgross_type", values_to = "domgross_val") %>% pivot_longer(c("intgross", "intgross_2013"), names_to = "intgross_type", values_to = "intgross_val")
+head(bechdel_untidy)
+
+bechdel_tidy <- bechdel_untidy %>% pivot_wider(names_from = "budget_type", values_from = "budget_val") %>% pivot_wider(names_from = "domgross_type", values_from = "domgross_val") %>% pivot_wider(names_from = "intgross_type", values_from = "intgross_val")
+head(bechdel_tidy)
 ```
 
     
 #### Joining/Merging
 
 ```{R}
-# your joining code
-
-# your joining code
+joined <- inner_join(bechdel, movies, by=c("title", "year"))
+head(joined)
 ```
 
-Discussions of joining here. Feel encouraged to break up into more than once code chunk and discuss each in turn.
+I used an inner join to join the `movies` and `bechdel` data sets. I used this join method because we want our joined data to only include movies that are in both data sets. Otherwise the data set would include movies with no bechdel test information or movies with no rating information. I joined the data sets by two variables: title and release year. I joined by title because that was the target common variable between the two data sets. I also joined by year because each data sets contain movies that have the same name but we released a different year. For example the `movies` data set has the movie *Carrie* released in 1976 but the data set `bechdel` gas the *Carrie* movie released in 2002. Joining by year ensure that the correct identical movies were joined.  
+
+```{R}
+nrow(movies)
+nrow(bechdel)
+nrow(joined)
+n_distinct(movies)
+n_distinct(bechdel)
+n_distinct(joined)
+n_distinct(movies)-n_distinct(joined)
+n_distinct(bechdel)-n_distinct(joined)
+```
+
+The `movies` data set has a total of 58,788 observations (movies), white the`bechdel` data set has a total of 1,794 observations (movies). The `movies` data set has 58,788 unique IDs, while the `bechdel` data set has 1,794 unique IDs. There are 58,128 unique IDs that appear in the `movies` data set but do not appear int the `bechdel` data set. This means that 58,128 movies from the `movies` data set were dropped when it was joined with the `bechdel` data set. This is because the `bechdel` data set did not include information about these 58,128 movies. There are 1,134 unique IDs that appear in the `bechdel` data set but do not appear in the `movies` data set. That means that 1,134 movies from the `bechdel` data set were dropped when it was joined with the `movies` data set. This is because the `movies` data set did not include information about these 1,134 movies. Therefore the `movies` data set and the `bechdel` data set have 660 unique IDs in common.
+
 
 ####  Wrangling
 
 ```{R}
-# your wrangling code
-
-# your wrangling code
-
-# your wrangling code
+joined <- joined %>% select(-length,-votes,-mpaa,-r1,-r2,-r3,-r4,-r5,-r6,-r7,-r8,-r9,-r10,-imdb,-test,-code,-period_code,-decade_code,-Action,-Animation,-Comedy,-Drama,-Documentary,-Romance,-Short, -budget.y)
+joined <- joined %>% mutate(bud_gross_ratio=budget.x/intgross)
+head(joined)
+joined %>% select_if(function(x) any(is.na(x))) %>% summarise_all(funs(sum(is.na(.))))
+joined <- joined %>% na.omit()
 ```
 
-Your discussion of wrangling section here. Feel encouraged to break up into more than once code chunk and discuss each in turn.
+I started by removing variables, using `select`, that I did not feel were important for the analysis of the joined data sets. I decided to remove the `budget` variable from the `movies` data set, rather than the `bechdel` data set, because it had many NA values. I used `mutate` to create the `bud_gross_ratio` variable which is the ratio of the budget to the international gross. The lower ratio number the more the gross exceeded the budget, of the movie. The higher the ratio number the more the budget exceeded the gross, of the movie. I also used `select_if` to select the variables that contain NA values and `summarise_all` to count the number of NAs. There are 3 NA values in `domggross`, `intgross`, `domgross_2013`, `intgross_2013`, and `bud_gross_ratio`. I then overrode the joined data set with `na.omit()` for future calculation purposes.
+
+```{R}
+joined_num <- joined %>% select(budget.x, budget_2013, domgross, domgross_2013, intgross, intgross_2013,bud_gross_ratio,rating) %>%  
+  summarise_each(funs(mean, sd, median, max, min)) %>% 
+  rename(budget=budget.x_mean, budget_2013=budget_2013_mean, domgross=domgross_mean,               domgross_2013=domgross_2013_mean, intgross=intgross_mean, intgross_2013=intgross_2013_mean,    
+  bud_gross_ratio=bud_gross_ratio_mean, rating=rating_mean) %>% 
+  pivot_longer(1:8, names_to="variable", values_to="mean") %>% 
+  pivot_longer(1:8, names_to="name2", values_to="sd")
+
+joined_num <- joined_num[-c(2:9,11:18,20:27,29:36,38:45,47:54,56:63,65:72), -27]
+joined_num <- joined_num %>% pivot_longer(1:8, names_to="name2", values_to="median")
+joined_num <- joined_num[-c(2:9,11:18,20:27,29:36,38:45,47:54,56:63), -20]
+joined_num <- joined_num %>% pivot_longer(1:8, names_to="name3", values_to="maximum")
+joined_num <- joined_num[-c(2:9,11:18,20:27,29:36,38:45,47:54,56:63), -13]
+joined_num <- joined_num %>% pivot_longer(1:8, names_to="name4", values_to="minimum")
+joined_num <- joined_num[-c(2:9,11:18,20:27,29:36,38:45,47:54,56:63), -6]
+joined_num %>% gt() %>% tab_header(title = "Summary Statistics", subtitle = "Numeric Variables") 
+```
+In this part of the wrangling section I calculated summary statistics of all my numeric variables. I first started by selected all of the numeric variables from my remaining data set. I then used `na.omit()` to remove all the NA values, so they're not included in the calcualtions of our summary statistics. Then I used `summarize_each` to calculate the mean, standard deviation, median, maximum and minimum of each variable. Then I pivoted using `pivot_longer` and removed some rows and columns in order to tidy up my data. Then once I had tidy data I styled the table using the `gt` package to add a title and a subtitle. 
+
+```{R}
+joined %>% group_by(binary, clean_test) %>% summarize(n=n_distinct(title)) %>% arrange(-n)
+```
+
+I have two categorical variables in my data set `binary` and `clean_test`. The `binary` variable is a simple pass or fail of the bechdel test. When looking at the frequencies of the `binary` variable we see there are more movies in this data set that failed the bechdel test. The `clean_test` variable has five categories: ok, which means that the movie passed the bechdel test; dubious, which means the movie is questionable; men, which means women in the movie only talked about men; notalk, which means the women in the movie don't talk to each other; and nowomen, which means the movie had fewer than two women. When looking at the `clean_test` frequencies we see that most of the movies that failed the bechdel test, did so because the women in the movies did not talked to each other.
+
+```{R}
+joined %>% group_by(binary, clean_test) %>% summarize(mean_rate=mean(rating), mean_ratio=mean(bud_gross_ratio)) %>% arrange(mean_rate)
+joined %>% filter(binary=="FAIL") %>% group_by(rating) %>% summarize(n=n()) %>% arrange(-n)
+joined %>% filter(binary=="PASS") %>% group_by(rating) %>% summarize(n=n()) %>% arrange(-n)
+
+string <- "I5f t9h2e2 mo2v7i7e d8id n3ot p8ass t0h7e4 be3c8h4de6l t5e6s5t I d5o no3t w7a6nt t2o w8atch i6t!"
+str_remove_all(string, "[0-9]")
+```
+
+To futher explore my data I grouped by `binary` and `clean_test` in order to see the average rating and average budget to gross ratio for each variable. The movies with the highest average rating failed the bechdel test, because they lacked enough women to pass the bechdel test. The movies with the lowest average rating are those that are questionable. The movies that passed the bechdel test have the second lowest average rating. The movies with the highest budget to gross ratio, meaning their budget greatly exceeded the gross, are the dubious movies. The movies with the lowest gross, meaning their gross exceeded their budget, are the movies that failed the bechdel test because women only talk about men. I then filtered my data for only the movies that failed the bechdel tests and calculated the count for each individual rating. I did the same for the movies that passed the bechdel test. The most frequent rating for the movies that failed the bechdel test is a 6.8. The most frequent rating for the movies that failed the bechdel test is a 6.1. Lastly I created a string that had a secret message and decoded it usign `str_remove_all`.
 
 
 #### Visualizing
 
 ```{R}
-# your plot 1
+joined %>% ggplot(aes(x=clean_test, y=intgross_2013, fill=binary)) + 
+  geom_violin() +
+  geom_boxplot() + 
+  stat_summary(fun.y=mean, geom="point", shape=4) + 
+  labs(title="Bechdel Test vs. International Gross Boxplot", x="Categorized Bechdel Test",
+  y="International Gross Asjust (2013 USD)") + 
+  theme_minimal() +
+  scale_fill_manual(values=c("skyblue", "pink"), name="Bechdel Test", labels=c("Fail", "Pass")) +
+  scale_y_continuous(breaks=c(500000000,1000000000,1500000000,2000000000,2500000000,3000000000))
 ```
 
-Your discussion of plot 1
+This plot shows the distribution of international gross profit of movies group together by whether or not they passed the bechdel test and why. I used the international gross that was adjusted for inflation in 2013, so that the movies could have an even playing field. I used `geom_boxplot` to create the boxplots and used `geom_violin` to create the violin distributions.  From the plot we see that mostly all of the categories of movies are skewed the to right. The `nowomen` movies have the highest average international gross (marked by an x) and the highest median international gross (the thick line through the middle of the box). The movies that passed the bechdel test have the lowest average and median international gross. The `nowomen` and `notalk` movies have taller boxes meaning that the data from those groups is more spread out. The `ok` and `dubious` groups have shorter boxes meaning their data is more condensed. The plot shows that both the `notalk` movies and the `ok` movies have very extreme outliers. The relationship shown here is that movies that fail the bechdel test, specifically those where the women don't talk to each other, have a higher international gross than movies that pass the bechdel test.
 
 ```{R}
-# your plot 2
+joined %>% ggplot(aes(x=budget.x, y=domgross_2013, color=binary)) + 
+  geom_point() +
+  geom_smooth(method=lm, size=0.75) +
+  scale_color_manual(values=c("red", "green"), name="Bechdel Test", labels=c("Fail", "Pass")) +
+  labs(title="Budget vs Domestic Gross", x="Budget (USD)", y="Domestic Gross (2013 USD)") +
+  theme_bw()
 ```
 
-Your discussion of plot 2
+This plot shows the relationship between the movies' budget and domestic gross. Again, I chose the domestic gross adjust to 2013 inflation to give the movies an even playing field. I used `geom_point` to make the scatter plot and then I used `geom_smooth` to create the regression line for each category. From the regression lines we see that for the movies that passed the bechdel test we see a significant increase in domestic gross as budget increases. Therefore for the movies that passed the bechdel test there is a positive relationship between budget and domestic gross. For the movies that failed the bechdel the regression line does not have as steep of a slop as the pass regression line did. Therefore, for the movies that failed the bechdel test there is a less strong positive relationship between budget and domestic gross.
 
 ```{R}
-# your plot 3
+joined %>% ggplot(aes(x=rating, fill=clean_test)) + 
+  geom_histogram() + 
+  geom_freqpoly() +
+  facet_grid(vars(binary)) +
+  scale_fill_manual(values=c("navy", "blue","royalblue","skyblue", "pink"), name="Bechdel Test Result", labels=c("No Women", "No Talk", "Men", "Dubious", "Pass")) +
+  labs(title="Movie Rating Distribution", x="Rating", y="Count") +
+  theme_linedraw() +
+  scale_x_continuous(breaks=c(1,2,3,4,5,6,7,8,9,10))
 ```
 
-Your discussion of plot 3
+This graph shows the distribution of ratings for movies that passed and failed the bechdel test. The distribution is shown two ways: with bars and lines. For the movies that failed the bechdel test the most frequent ratings are around 7 and 7.5. For the movies that passed the bechdel test the most frequent ratings are around 6. From the graph we can gather that most of the movies in the higher ratings (>6.5) failed the bechdel test while most of the movies in the lower ratings (<6.5) passed the bechdel test. This suggestions that movies that failed the bechdel test are overall rated more highly than thosed that passed the bechdel test. 
 
 #### Concluding Remarks
 
