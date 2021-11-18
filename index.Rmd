@@ -26,13 +26,15 @@ tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
 Both data sets that I have chosen were apart of packages that were already installed on the server. The first data set I chose is `movies` from the package `ggplot2movies`. This data set contains information and user ratings of 58,788 movies from the website IMDB.com. For each movie there is the following information: the title, year of release, total budget (US dollars), length (minutes), average IMDB user rating, number of IMDB users who rated the movie, percentile of users who rating the movie a 1,2,3 etc. (when multiplied by 10), MPAA rating and binary genre. The second data set I chose is `bechdel` from the package `fivethirtyeight`. This data set contains information about 1,794 movies and whether or not they passed what is called the bechdel test. The bechdel test is a test of the representation of women in fiction. The requirements are that there are two women are featured in the film and talk to each other about something other than men. This data set contains the following information: the title, year of release, text to construct IMDB URL, detailed bechdel test results with discrepancies, detailed bechdel test results, binary bechdel test result, film budget, domestic gross (US), international gross, bechdel code (Year&Pass or Fail), budget in 2013 (adjusted for inflation), domestic gross in 2013 (adjusted for inflation), international gross in 2013 (adjusted for inflation), period code, and decade code.
 I chose these data sets to see the correlation between the bechdel test and the rating of certain movies. There are also many other factors that can be compared like the budget of the movie and the rating or the budget and whether or not the movie passed the bechdel test. There has been growing representation of women in the film industry. However, there has not always been female representation so older movies may not be as likely to pass the bechdel test where newer movies will be more likely to pass. The `bechdel` data set only includes movies from 1970-2013, but it will still be interesting to see the change in representation just over that 43 year time period. Personally, being in the STEM field I know that we, as women, are growing as the minority. However, this topic is particularly interesting to me as a women because I believe that we should have fair representation in all fields.
 
-```{R eval=F}
+```{r load-packages, include=FALSE}
 library(tidyverse)
 library(dplyr)
 library(gt)
-library(kableExtra)
 library(fivethirtyeight)
 library(ggplot2movies)
+```
+
+```{R eval=F}
 data("movies")
 data("bechdel")
 head(bechdel)
